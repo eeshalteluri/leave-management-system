@@ -15,14 +15,10 @@ const leaveSchema = new Schema<ILeave>({
     ref: "User",
     required: true
   },
-
   leaveType: { type: String, required: true },
-
   startDate: Date,
   endDate: Date,
-
   reason: String,
-
   status: {
     type: String,
     enum: ["Pending", "Approved", "Rejected"],

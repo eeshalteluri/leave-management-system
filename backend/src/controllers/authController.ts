@@ -1,49 +1,67 @@
 import { Request, Response } from "express";
-import User from "../models/User";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import * as authService from "../services/authService";
 
 export const signup = async (req: Request, res: Response) => {
   try {
+
     const { name, email, password, role } = req.body;
 
-    const hashed = await bcrypt.hash(password, 10);
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Name, email and password are required"
+      });
+    }
 
-    const user = await User.create({
+    const user = await authService.registerUser(
       name,
       email,
-      password: hashed,
+      password,
       role
+    );
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user
     });
 
-    res.json(user);
+  } catch (error: any) {
 
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Signup error:", error);
+
+    res.status(400).json({
+      message: error.message || "Signup failed"
+    });
   }
 };
 
 export const login = async (req: Request, res: Response) => {
+  try {
 
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required"
+      });
+    }
 
-  if (!user) {
-    return res.status(400).json({ message: "User not found" });
+    const data = await authService.loginUser(
+      email,
+      password
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token: data.token,
+      user: data.user
+    });
+
+  } catch (error: any) {
+
+    console.error("Login error:", error);
+
+    res.status(400).json({
+      message: error.message || "Login failed"
+    });
   }
-
-  const match = await bcrypt.compare(password, user.password);
-
-  if (!match) {
-    return res.status(400).json({ message: "Invalid password" });
-  }
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET as string,
-    { expiresIn: "1d" }
-  );
-
-  res.json({ token, user });
 };
