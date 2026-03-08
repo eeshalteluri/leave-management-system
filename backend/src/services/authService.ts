@@ -6,7 +6,7 @@ export const registerUser = async (
   name: string,
   email: string,
   password: string,
-  role: string
+  role: "employee" | "manager"
 ) => {
 
   // Check if user already exists
