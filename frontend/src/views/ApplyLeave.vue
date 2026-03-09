@@ -107,6 +107,7 @@ import Spinner from "../components/Spinner.vue";
 import api from "../api/axios";
 import type { ApplyLeavePayload, LeaveTypeOption } from "../types";
 import type { AxiosError } from "axios";
+import { useRouter } from "vue-router";
 
 const today = new Date().toISOString().split("T")[0];
 
@@ -118,6 +119,8 @@ const leaveTypes: LeaveTypeOption[] = [
   { value: "Paternity Leave", label: "Paternity Leave" },
   { value: "Unpaid Leave",    label: "Unpaid Leave" },
 ];
+
+const router = useRouter();
 
 const form = reactive<ApplyLeavePayload>({
   leaveType: "Annual Leave",
@@ -155,11 +158,15 @@ async function handleSubmit(): Promise<void> {
 
   try {
     loading.value = true;
-    // ✅ Matches: POST /api/leaves/apply
-    await api.post("/leaves/apply", form);
+    // ✅ Matches: POST /api/leave/apply
+    await api.post("/leave/apply", form);
     success.value = true;
     Object.assign(form, { startDate: "", endDate: "", reason: "" });
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+    router.push("/employee/dashboard");
+  }, 1200);
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     error.value = e.response?.data?.message ?? "Failed to submit request. Please try again.";

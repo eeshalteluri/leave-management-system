@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #app {
+  height: 100%;
+  width: 100%;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -27,12 +32,8 @@ a:hover {
 }
 
 body {
-  @apply font-sans;
+  @apply min-h-screen font-sans;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 h1 {
@@ -64,10 +65,9 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /*max-width: 1280px;*/
+  /*padding: 2rem;*/
 }
 
 @media (prefers-color-scheme: light) {
@@ -80,5 +80,84 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@layer components {
+
+  .card {
+    @apply bg-gray-900/70 backdrop-blur rounded-2xl p-8 shadow-xl;
+  }
+
+  .field-label {
+    @apply block text-sm font-medium text-gray-400 mb-1;
+  }
+
+  .field {
+    @apply w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-2 text-gray-100
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           placeholder:text-gray-500 transition;
+  }
+
+  .btn-brand {
+    @apply flex items-center justify-center gap-2 bg-brand-500 text-white
+           font-semibold rounded-lg px-2 py-2.5 hover:bg-brand-600 hover:text-gray-950           
+           disabled:opacity-60 disabled:cursor-not-allowed transition;
+  }
+
+  .alert-error {
+    @apply bg-red-500/10 border border-red-500/20 text-red-400
+           px-4 py-2 rounded-lg text-sm;
+  }
+
+  .divider {
+    @apply my-6 border-t border-gray-800;
+  }
+
+  .page-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .stat-card {
+    @apply bg-gray-900 border border-gray-800 rounded-xl p-4
+           flex flex-col gap-1 transition hover:border-gray-700;
+  }
+
+  .stat-label {
+    @apply text-xs font-medium uppercase tracking-wide text-gray-500;
+  }
+
+  .stat-value {
+    @apply text-xl font-semibold;
+  }
+
+  .nav-link {
+    @apply px-3 py-2 text-sm font-medium text-gray-400 rounded-lg
+           hover:text-white hover:bg-gray-800 transition;
+  }
+
+  .nav-link-active {
+    @apply text-brand-400 bg-brand-500/10;
+  }
+
+  .btn-ghost {
+    @apply flex items-center gap-2 px-3 py-2 text-sm rounded-lg
+           hover:bg-gray-800 transition;
+  }
+
+  .btn-approve {
+    @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+           border border-emerald-500/30 text-emerald-400
+           hover:bg-emerald-500/10 hover:border-emerald-500/50
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition;
+  }
+
+  .btn-reject {
+    @apply flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+           border border-red-500/30 text-red-400
+           hover:bg-red-500/10 hover:border-red-500/50
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition;
   }
 }

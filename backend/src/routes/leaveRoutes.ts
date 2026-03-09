@@ -22,14 +22,14 @@ router.get(
 router.get(
   "/all",
   authMiddleware,
-  roleMiddleware("employer"),
+  roleMiddleware("manager"),
   leaveController.allLeaves
 );
 
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("employer"),
+  roleMiddleware("manager"),
   leaveController.updateLeave
 );
 

@@ -7,23 +7,46 @@ export interface ILeave extends Document {
   endDate: Date;
   reason: string;
   status: "Pending" | "Approved" | "Rejected";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const leaveSchema = new Schema<ILeave>({
-  employeeId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true
+const leaveSchema = new Schema<ILeave>(
+  {
+    employeeId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+
+    leaveType: {
+      type: String,
+      required: true
+    },
+
+    startDate: {
+      type: Date,
+      required: true
+    },
+
+    endDate: {
+      type: Date,
+      required: true
+    },
+
+    reason: {
+      type: String
+    },
+
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected"],
+      default: "Pending"
+    }
   },
-  leaveType: { type: String, required: true },
-  startDate: Date,
-  endDate: Date,
-  reason: String,
-  status: {
-    type: String,
-    enum: ["Pending", "Approved", "Rejected"],
-    default: "Pending"
+  {
+    timestamps: true // ✅ Automatically adds createdAt & updatedAt
   }
-});
+);
 
 export default mongoose.model<ILeave>("Leave", leaveSchema);

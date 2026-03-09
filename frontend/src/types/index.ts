@@ -53,7 +53,7 @@ export interface LeaveRequest {
   updatedAt: string;
 }
 
-// POST /api/leaves/apply
+// POST /api/leave/apply
 export interface ApplyLeavePayload {
   leaveType: LeaveType;
   startDate: string;
@@ -61,7 +61,7 @@ export interface ApplyLeavePayload {
   reason: string;
 }
 
-// PUT /api/leaves/:id  — your backend accepts capitalized status
+// PUT /api/leave/:id  — your backend accepts capitalized status
 export interface UpdateLeaveStatusPayload {
   status: "Approved" | "Rejected";
 }
@@ -75,4 +75,9 @@ export interface LeaveTypeOption {
 export type FilterOption = {
   value: LeaveStatus | "all";
   label: string;
+};
+
+export type MyLeavesResponse = {
+  message: string;
+  leaves: LeaveRequest[];
 };

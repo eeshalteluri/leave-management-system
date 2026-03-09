@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/auth";
 
-const roleMiddleware = (requiredRole: "employee" | "employer") => {
+const roleMiddleware = (requiredRole: "employee" | "manager") => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {

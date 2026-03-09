@@ -178,7 +178,7 @@ Response:
 
 ## Apply for Leave (Employee)
 
-POST /api/leaves/apply
+POST /api/leave/apply
 
 Body:
 
@@ -195,7 +195,7 @@ Body:
 
 ## View Own Leave Requests (Employee)
 
-GET /api/leaves/my
+GET /api/leave/my
 
 Returns all leave requests created by the logged-in employee.
 
@@ -203,7 +203,7 @@ Returns all leave requests created by the logged-in employee.
 
 ## View All Leave Requests (Employer)
 
-GET /api/leaves/all
+GET /api/leave/all
 
 Returns all leave requests submitted by employees.
 
@@ -211,7 +211,7 @@ Returns all leave requests submitted by employees.
 
 ## Update Leave Status (Employer)
 
-PUT /api/leaves/:id
+PUT /api/leave/:id
 
 Body:
 

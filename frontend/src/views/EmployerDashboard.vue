@@ -66,87 +66,215 @@
       </div>
 
       <!-- Request list -->
-      <div v-else class="space-y-3">
-        <div v-for="(leave, i) in filtered" :key="leave._id"
-          class="card hover:border-gray-700 transition-all duration-200 animate-fade-up"
-          :style="{ animationDelay: `${i * 40}ms` }">
+      <div v-else class="space-y-4">
 
-          <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+<div
+  v-for="(leave, i) in filtered"
+  :key="leave._id"
+  class="card hover:border-gray-700 transition-all duration-200 animate-fade-up"
+  :style="{ animationDelay: `${i * 40}ms` }"
+>
 
-            <!-- Left: leave info -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <StatusBadge :status="leave.status" />
-                <span class="text-xs text-gray-600 font-mono border border-gray-800 px-2 py-0.5 rounded-md">
-                  {{ leave.leaveType }}
-                </span>
-                <span class="text-xs text-gray-600 font-mono">
-                  {{ totalDays(leave) }} day{{ totalDays(leave) !== 1 ? "s" : "" }}
-                </span>
-              </div>
+  <div class="flex flex-col md:flex-row md:items-stretch justify-between gap-6">
 
-              <!-- Employee info -->
-              <div class="flex items-center gap-2 mb-2">
-                <div class="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0">
-                  <span class="text-xs font-bold text-brand-400 font-mono">
-                    {{ employeeName(leave).charAt(0).toUpperCase() }}
-                  </span>
-                </div>
-                <div>
-                  <p class="text-sm font-semibold text-gray-200 leading-none">
-                    {{ employeeName(leave) }}
-                  </p>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    {{ employeeEmail(leave) }}
-                    <span v-if="employeeDept(leave)" class="text-gray-600 ml-1">· {{ employeeDept(leave) }}</span>
-                  </p>
-                </div>
-              </div>
+    <!-- LEFT SIDE -->
+    <div class="flex-1 min-w-0">
 
-              <p class="text-sm text-gray-400">
-                <span class="font-mono text-xs text-gray-600 mr-1">📅</span>
-                {{ fmtDate(leave.startDate) }} → {{ fmtDate(leave.endDate) }}
-              </p>
-              <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ leave.reason }}</p>
-            </div>
+      <!-- Status / Type / Duration -->
+      <div class="flex items-center flex-wrap gap-2 mb-3">
 
-            <!-- Right: actions -->
-            <div class="flex flex-col gap-2 shrink-0 lg:items-end">
-              <template v-if="leave.status === 'Pending'">
-                <div class="flex gap-2">
-                  <!-- ✅ Matches: PUT /api/leaves/:id  { "status": "Approved" } -->
-                  <button @click="updateStatus(leave._id, 'Approved')"
-                    class="btn-approve" :disabled="processing === leave._id">
-                    <Spinner v-if="processing === leave._id" size="sm" color="text-emerald-400" />
-                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Approve
-                  </button>
-                  <!-- ✅ Matches: PUT /api/leaves/:id  { "status": "Rejected" } -->
-                  <button @click="updateStatus(leave._id, 'Rejected')"
-                    class="btn-reject" :disabled="processing === leave._id">
-                    <Spinner v-if="processing === leave._id" size="sm" color="text-red-400" />
-                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Reject
-                  </button>
-                </div>
-              </template>
-              <div v-else class="text-xs font-mono text-gray-600 capitalize">Reviewed</div>
+        <StatusBadge :status="leave.status" />
 
-              <div class="text-xs font-mono text-gray-700">{{ fmtDate(leave.createdAt) }}</div>
-            </div>
+        <span class="text-xs text-gray-400 border border-gray-800 px-2 py-0.5 rounded-md">
+          {{ leave.leaveType }}
+        </span>
 
-          </div>
+        <span class="text-xs text-gray-500">
+          {{ totalDays(leave) }} day{{ totalDays(leave) !== 1 ? "s" : "" }}
+        </span>
 
-          <!-- Inline action error -->
-          <div v-if="actionErrors[leave._id]" class="alert-error mt-3 text-xs py-2">
-            {{ actionErrors[leave._id] }}
-          </div>
+      </div>
+
+      <!-- Employee -->
+      <div class="flex items-center gap-3 mb-3">
+
+        <div
+          class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0"
+        >
+          <span class="text-xs font-semibold text-brand-400 font-mono">
+            {{ employeeName(leave).charAt(0).toUpperCase() }}
+          </span>
+        </div>
+
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-gray-200 truncate">
+            {{ employeeName(leave) }}
+          </p>
+
+          <p class="text-xs text-gray-500 truncate">
+            {{ employeeEmail(leave) }}
+
+            <span
+              v-if="employeeDept(leave)"
+              class="text-gray-600 ml-1"
+            >
+              · {{ employeeDept(leave) }}
+            </span>
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Leave Dates -->
+      <div class="flex items-center gap-2 text-sm text-gray-400">
+
+        <svg
+          class="w-4 h-4 text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0
+            002-2V7a2 2 0 00-2-2H5a2 2 0
+            00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+
+        {{ fmtDate(leave.startDate) }}
+        <span class="text-gray-600">→</span>
+        {{ fmtDate(leave.endDate) }}
+
+      </div>
+
+      <!-- Reason -->
+      <p class="text-sm text-gray-500 mt-2 line-clamp-2">
+        {{ leave.reason }}
+      </p>
+
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <div class="flex flex-col justify-between gap-4 lg:min-w-[220px]">
+
+      <!-- ACTIONS -->
+      <template v-if="leave.status === 'Pending'">
+
+        <div class="flex gap-2">
+
+          <button
+            @click="updateStatus(leave._id, 'Approved')"
+            class="btn-approve flex-1"
+            :disabled="processing === leave._id"
+          >
+            <Spinner
+              v-if="processing === leave._id"
+              size="sm"
+              color="text-emerald-400"
+            />
+
+            <svg
+              v-else
+              class="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+
+            Approve
+          </button>
+
+
+          <button
+            @click="updateStatus(leave._id, 'Rejected')"
+            class="btn-reject flex-1"
+            :disabled="processing === leave._id"
+          >
+            <Spinner
+              v-if="processing === leave._id"
+              size="sm"
+              color="text-red-400"
+            />
+
+            <svg
+              v-else
+              class="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+
+            Reject
+          </button>
 
         </div>
+
+      </template>
+
+      <div
+        v-else
+        class="text-xs font-mono text-gray-600 capitalize"
+      >
+        Reviewed
+      </div>
+
+
+      <!-- META INFO -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+
+        <div class="flex flex-col">
+          <span class="text-gray-600">
+            Requested at
+          </span>
+
+          <span class="text-sm text-gray-300">
+            {{ fmtDate(leave.createdAt) }}
+          </span>
+        </div>
+
+        <div class="flex flex-col">
+          <span class="text-gray-600">
+            Updated at
+          </span>
+
+          <span class="text-sm text-gray-300">
+            {{
+              new Date(leave.updatedAt).getTime() === new Date(leave.createdAt).getTime()
+                ? "—"
+                : fmtDate(leave.updatedAt)
+            }}
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Action Error -->
+  <div
+    v-if="actionErrors[leave._id]"
+    class="alert-error mt-3 text-xs py-2"
+  >
+    {{ actionErrors[leave._id] }}
+  </div>
+
+</div>
+
       </div>
 
     </div>
@@ -159,7 +287,7 @@ import Navbar from "../components/Navbar.vue";
 import Spinner from "../components/Spinner.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import api from "../api/axios";
-import type { LeaveRequest, LeaveStatus, FilterOption, UpdateLeaveStatusPayload } from "../types";
+import type { LeaveRequest, LeaveStatus, FilterOption, UpdateLeaveStatusPayload, MyLeavesResponse } from "../types";
 import type { AxiosError } from "axios";
 
 const leaves      = ref<LeaveRequest[]>([]);
@@ -198,12 +326,18 @@ const employeeDept  = (l: LeaveRequest): string => (l.employee as any)?.departme
 async function updateStatus(id: string, status: "Approved" | "Rejected"): Promise<void> {
   delete actionErrors[id];
   processing.value = id;
+
   try {
     const payload: UpdateLeaveStatusPayload = { status };
-    // ✅ Matches: PUT /api/leaves/:id  { "status": "Approved" | "Rejected" }
-    const { data } = await api.put<LeaveRequest>(`/leaves/${id}`, payload);
-    const idx = leaves.value.findIndex(l => l._id === id);
-    if (idx !== -1) leaves.value[idx] = data;
+
+    const { data } = await api.put(`/leave/${id}`, payload);
+
+    const updatedLeave = data.leave;
+
+    leaves.value = leaves.value.map(l =>
+      l._id === id ? updatedLeave : l
+    );
+
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     actionErrors[id] = e.response?.data?.message ?? "Failed to update status.";
@@ -214,9 +348,10 @@ async function updateStatus(id: string, status: "Approved" | "Rejected"): Promis
 
 onMounted(async () => {
   try {
-    // ✅ Matches: GET /api/leaves/all
-    const { data } = await api.get<LeaveRequest[]>("/leaves/all");
-    leaves.value = data;
+    // ✅ Matches: GET /api/leave/all
+    const { data } = await api.get<MyLeavesResponse>("/leave/all");
+    leaves.value = data.leaves;
+    console.log("leaves: ", leaves.value);
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     fetchError.value = e.response?.data?.message ?? "Failed to load leave requests.";
