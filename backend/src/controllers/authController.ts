@@ -12,7 +12,7 @@ export const signup = async (req: Request, res: Response) => {
       });
     }
 
-    const user = await authService.registerUser(
+    const data = await authService.registerUser(
       name,
       email,
       password,
@@ -21,7 +21,8 @@ export const signup = async (req: Request, res: Response) => {
 
     res.status(201).json({
       message: "User registered successfully",
-      user
+      token: data.token,
+      user: data.user
     });
 
   } catch (error: any) {

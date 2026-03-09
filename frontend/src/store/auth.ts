@@ -20,16 +20,16 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.setItem("user", JSON.stringify(u));
   }
 
-  async function signup(payload: SignupPayload): Promise<User> {
+  async function signup(payload: SignupPayload): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>("/auth/signup", payload);
     persist(data.token, data.user);
-    return data.user;
+    return data;
   }
 
-  async function login(payload: LoginPayload): Promise<User> {
+  async function login(payload: LoginPayload): Promise<AuthResponse> {
     const { data } = await api.post<AuthResponse>("/auth/login", payload);
     persist(data.token, data.user);
-    return data.user;
+    return data;
   }
 
   function logout(): void {

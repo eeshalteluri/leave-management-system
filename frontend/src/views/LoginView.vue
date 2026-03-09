@@ -145,8 +145,9 @@ async function handleSubmit(): Promise<void> {
   }
   try {
     loading.value = true;
-    const user = await auth.login(form);
-    router.push(user.role === "employee" ? "/employee/dashboard" : "/employer/dashboard");
+    const res = await auth.login(form);
+    console.log("Loggedin User: ", res.user);
+    router.push(res.user.role === "employee" ? "/employee/dashboard" : "/employer/dashboard");
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     error.value = e.response?.data?.message ?? "Invalid credentials. Please try again.";

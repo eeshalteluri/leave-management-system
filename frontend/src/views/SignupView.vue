@@ -122,8 +122,11 @@ async function handleSubmit(): Promise<void> {
   }
   try {
     loading.value = true;
-    const user = await auth.signup(form);
-    router.push(user.role === "employee" ? "/employee/dashboard" : "/employer/dashboard");
+    const res = await auth.signup(form);
+    console.log(res)
+    router.push(res.user.role === "employee"
+      ? "/employee/dashboard"
+      : "/employer/dashboard");
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     error.value = e.response?.data?.message ?? "Signup failed. Please try again.";
