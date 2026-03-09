@@ -2,6 +2,18 @@ import User from "../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+const generateToken = (id: string, role: string) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT secret not configured");
+  }
+
+  return jwt.sign(
+    { id, role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+};
+
 export const registerUser = async (
   name: string,
   email: string,
@@ -25,7 +37,9 @@ export const registerUser = async (
     role
   });
 
-  return user;
+  const token = generateToken(user._id.toString(), user.role);
+
+  return { token, user };
 };
 
 export const loginUser = async (
@@ -45,15 +59,7 @@ export const loginUser = async (
     throw new Error("Invalid credentials");
   }
 
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT secret not configured");
-  }
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
+  const token = generateToken(user._id.toString(), user.role);
 
   return { token, user };
 };
