@@ -1,5 +1,5 @@
 // ── User & Auth ────────────────────────────────────────────────
-export type UserRole = "employee" | "employer";
+export type UserRole = "employee" | "manager";
 
 export interface User {
   id: string;

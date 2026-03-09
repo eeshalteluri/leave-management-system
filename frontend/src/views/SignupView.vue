@@ -61,10 +61,10 @@
                 </svg>
                 Employee
               </button>
-              <button type="button" @click="form.role = 'employer'"
+              <button type="button" @click="form.role = 'manager'"
                 :class="[
                   'flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-medium transition-all duration-150',
-                  form.role === 'employer'
+                  form.role === 'manager'
                     ? 'border-brand-500 bg-brand-500/10 text-brand-400'
                     : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-400'
                 ]">

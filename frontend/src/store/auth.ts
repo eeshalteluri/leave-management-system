@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isLoggedIn  = computed<boolean>(() => !!token.value);
   const isEmployee  = computed<boolean>(() => user.value?.role === "employee");
-  const isEmployer  = computed<boolean>(() => user.value?.role === "employer");
+  const isEmployer  = computed<boolean>(() => user.value?.role === "manager");
 
   function persist(t: string, u: User): void {
     token.value = t;
