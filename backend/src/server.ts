@@ -9,6 +9,10 @@ import leaveRoutes from "./routes/leaveRoutes";
 dotenv.config();
 
 const PORT = process.env.PORT
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173"
+];
 
 const app = express();
 
@@ -16,7 +20,13 @@ connectDB();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );
