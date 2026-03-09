@@ -32,7 +32,7 @@
         </div>
 
         <h1 class="text-3xl font-bold text-white tracking-tight">
-          LeaveDesk
+          Leave Management System
         </h1>
 
         <p class="text-gray-500 text-sm mt-1">

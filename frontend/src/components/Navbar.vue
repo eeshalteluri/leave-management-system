@@ -30,7 +30,7 @@
           </div>
 
           <span class="font-bold text-white tracking-tight text-lg">
-            LeaveDesk
+            LMS
           </span>
 
         </div>

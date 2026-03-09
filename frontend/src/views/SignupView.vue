@@ -13,7 +13,7 @@
           </svg>
         </div>
         <h1 class="text-3xl font-display font-bold text-white tracking-tight">Create account</h1>
-        <p class="text-gray-500 text-sm mt-1">Join LeaveDesk today</p>
+        <p class="text-gray-500 text-sm mt-1">Join LMS today</p>
       </div>
 
       <div class="card border-gray-800">
