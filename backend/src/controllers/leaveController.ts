@@ -89,7 +89,7 @@ export const updateLeave = async (
 ) => {
   try {
     const leaveId = req.params.id;
-    const { status } = req.body;
+    const { status, managerComment } = req.body;
 
     if (!leaveId) {
       return res.status(400).json({
@@ -111,7 +111,8 @@ export const updateLeave = async (
 
     const leave = await leaveService.updateLeaveStatus(
       leaveId as string,
-      status
+      status,
+      managerComment
     );
 
     if (!leave) {

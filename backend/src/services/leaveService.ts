@@ -140,7 +140,8 @@ export const getAllLeaves = async () => {
 
 export const updateLeaveStatus = async (
   leaveId: string,
-  status: "Approved" | "Rejected"
+  status: "Approved" | "Rejected",
+  managerComment?: string
 ) => {
 
   const leave = await Leave.findById(leaveId);
@@ -181,6 +182,10 @@ export const updateLeaveStatus = async (
   }
 
   leave.status = status;
+
+  if (managerComment) {
+    leave.managerComment = managerComment;
+  }
 
   await leave.save();
 

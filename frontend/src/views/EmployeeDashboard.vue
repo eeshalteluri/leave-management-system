@@ -34,7 +34,7 @@
         </div>
 
         <!-- Balance cards -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div v-for="b in balanceCards" :key="b.key"
             class="card-sm group hover:border-gray-700 transition-all duration-200">
 
@@ -156,6 +156,27 @@
                 {{ fmtDate(leave.startDate) }} → {{ fmtDate(leave.endDate) }}
               </p>
               <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ leave.reason }}</p>
+
+              <!-- Manager comment — only shown after review -->
+              <div v-if="leave.managerComment"
+                class="flex items-start gap-2 mt-3 px-3 py-2 rounded-lg border"
+                :class="leave.status === 'Approved'
+                  ? 'bg-emerald-500/5 border-emerald-500/20'
+                  : 'bg-red-500/5 border-red-500/20'">
+                <svg class="w-3.5 h-3.5 shrink-0 mt-0.5"
+                  :class="leave.status === 'Approved' ? 'text-emerald-500' : 'text-red-500'"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <div>
+                  <p class="text-xs font-medium mb-0.5"
+                    :class="leave.status === 'Approved' ? 'text-emerald-400' : 'text-red-400'">
+                    Manager's comment
+                  </p>
+                  <p class="text-xs text-gray-400">{{ leave.managerComment }}</p>
+                </div>
+              </div>
             </div>
 
             <!-- Right -->
@@ -214,31 +235,31 @@ const balanceCards = computed<BalanceCard[]>(() => {
       key:        "annual",
       label:      "Annual Leave",
       icon:       "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
-      labelColor: "text-amber-500",  
-      valueColor: "text-amber-400",
-      barColor:   "bg-amber-500",    
-      iconBg:     "bg-amber-500/10",  
-      iconColor: "text-amber-400",
+      labelColor: "text-brand-500",
+      valueColor: "text-brand-400",
+      barColor:   "bg-brand-500",
+      iconBg:     "bg-brand-500/10",
+      iconColor:  "text-brand-400",
     },
     {
       key:        "sick",
       label:      "Sick Leave",
       icon:       "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
-      labelColor: "text-pink-500",   
-      valueColor: "text-pink-400",
-      barColor:   "bg-pink-500",     
-      iconBg:     "bg-pink-500/10",   
-      iconColor: "text-pink-400",
+      labelColor: "text-rose-500",
+      valueColor: "text-rose-400",
+      barColor:   "bg-rose-500",
+      iconBg:     "bg-rose-500/10",
+      iconColor:  "text-rose-400",
     },
     {
       key:        "casual",
       label:      "Casual Leave",
       icon:       "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z",
-      labelColor: "text-sky-500",    
-      valueColor: "text-sky-400",
-      barColor:   "bg-sky-500",      
-      iconBg:     "bg-sky-500/10",    
-      iconColor: "text-sky-400",
+      labelColor: "text-violet-500",
+      valueColor: "text-violet-400",
+      barColor:   "bg-violet-500",
+      iconBg:     "bg-violet-500/10",
+      iconColor:  "text-violet-400",
     },
   ];
 
@@ -285,8 +306,7 @@ onMounted(() => {
 async function fetchLeaves(): Promise<void> {
   try {
     // ✅ GET /api/leaves/my
-    const { data } = await api.get<{ message: string; leaves: LeaveRequest[] }>("/leave/my");
-    console.log("Leave data: ", data);
+    const { data } = await api.get<{message: string; leaves:LeaveRequest[]}>("/leave/my");
     leaves.value = data.leaves;
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
@@ -300,7 +320,6 @@ async function fetchBalance(): Promise<void> {
   try {
     // ✅ GET /api/auth/me — returns user object including leaveBalance
     const { data } = await api.get<{ message: string; balance: LeaveBalance }>("/user/leave-balance");
-    console.log("Leave balance data: ", data);
     balance.value = data.balance;
   } catch (err) {
     // Non-critical — cards still render using the max values as a safe fallback

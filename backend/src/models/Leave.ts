@@ -7,6 +7,7 @@ export interface ILeave extends Document {
   endDate: Date;
   reason: string;
   status: "Pending" | "Approved" | "Rejected";
+  managerComment?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +43,11 @@ const leaveSchema = new Schema<ILeave>(
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
       default: "Pending"
+    },
+
+    managerComment: {
+      type: String,
+      default: ""
     }
   },
   {

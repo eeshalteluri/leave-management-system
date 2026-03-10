@@ -61,6 +61,7 @@ export interface LeaveRequest {
   endDate: string;
   reason: string;
   status: LeaveStatus;
+  managerComment?: string;  // comment left by manager on review
   // employee field is present when viewed by employer
   employee?: User | { name: string; email: string; department?: string };
   createdAt: string;
@@ -75,9 +76,10 @@ export interface ApplyLeavePayload {
   reason: string;
 }
 
-// PUT /api/leaves/:id  — your backend accepts capitalized status
+// PUT /api/leaves/:id
 export interface UpdateLeaveStatusPayload {
   status: "Approved" | "Rejected";
+  managerComment?: string;
 }
 
 // ── Misc ────────────────────────────────────────────────────────
@@ -90,3 +92,14 @@ export type FilterOption = {
   value: LeaveStatus | "all";
   label: string;
 };
+
+// Response types
+export interface MyLeavesResponse {
+  message: string;
+  leaves: LeaveRequest[];
+}
+
+export interface AllLeavesResponse {
+  message: string;
+  leaves: LeaveRequest[];
+}
