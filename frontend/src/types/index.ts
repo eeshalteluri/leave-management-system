@@ -1,5 +1,6 @@
 // ── User & Auth ────────────────────────────────────────────────
-export type UserRole = "employee" | "employer";
+export type UserRole = "employee" | "manager";
+export type Department = "engineering" | "marketing" | "sales" | "hr";
 
 export interface LeaveBalance {
   annual: number;
@@ -12,7 +13,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  department?: string;
+  department: string;
   leaveBalance?: LeaveBalance;
 }
 
@@ -34,7 +35,7 @@ export interface SignupPayload {
   email: string;
   password: string;
   role: UserRole;
-  department?: string;
+  department: string;
 }
 
 export interface LoginPayload {

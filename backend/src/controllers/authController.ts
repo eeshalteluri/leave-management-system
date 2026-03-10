@@ -4,11 +4,11 @@ import * as authService from "../services/authService";
 export const signup = async (req: Request, res: Response) => {
   try {
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, department } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !department) {
       return res.status(400).json({
-        message: "Name, email and password are required"
+        message: "Name, email, password and department are required"
       });
     }
 
@@ -16,7 +16,8 @@ export const signup = async (req: Request, res: Response) => {
       name,
       email,
       password,
-      role
+      role,
+      department
     );
 
     res.status(201).json({

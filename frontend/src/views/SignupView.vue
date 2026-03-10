@@ -37,11 +37,16 @@
             <label class="field-label" for="password">Password</label>
             <input id="password" v-model="form.password" type="password" class="field" placeholder="At least 6 characters" autocomplete="new-password" />
           </div>
+          
           <div>
-            <label class="field-label" for="department">
-              Department <span class="text-gray-600 normal-case">(optional)</span>
-            </label>
-            <input id="department" v-model="form.department" type="text" class="field" placeholder="e.g. Engineering" />
+            <label class="field-label" for="department">Department</label>
+            <select id="department" v-model="form.department" class="field">
+              <option value="" disabled>Select a department</option>
+              <option value="engineering">Engineering</option>
+              <option value="marketing">Marketing</option>
+              <option value="sales">Sales</option>
+              <option value="hr">HR</option>
+            </select>
           </div>
 
           <!-- Role selector -->

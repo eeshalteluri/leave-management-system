@@ -18,7 +18,8 @@ export const registerUser = async (
   name: string,
   email: string,
   password: string,
-  role: "employee" | "manager"
+  role: "employee" | "manager",
+  department: string
 ) => {
 
   // Check if user already exists
@@ -34,7 +35,8 @@ export const registerUser = async (
     name,
     email,
     password: hashedPassword,
-    role
+    role,
+    department
   });
 
   const token = generateToken(user._id.toString(), user.role);

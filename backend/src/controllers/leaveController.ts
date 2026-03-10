@@ -67,19 +67,27 @@ export const myLeaves = async (req: AuthRequest, res: Response) => {
 
 export const allLeaves = async (req: AuthRequest, res: Response) => {
   try {
-    const leaves = await leaveService.getAllLeaves();
+
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const leaves = await leaveService.getAllLeaves(req.user.id);
+    console.log("All leaves Controller: ", leaves);
 
     res.status(200).json({
-      message: "All leave requests fetched",
+      message: "Department leave requests fetched",
       leaves
     });
 
   } catch (error) {
-    console.error("Fetch all leaves error:", error);
+
+    console.error("Fetch department leaves error:", error);
 
     res.status(500).json({
       message: "Internal server error"
     });
+
   }
 };
 

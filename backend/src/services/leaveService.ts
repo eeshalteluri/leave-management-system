@@ -126,27 +126,56 @@ export const getEmployeeLeaves = async (employeeId: string) => {
   });
 };
 
-export const getAllLeaves = async () => {
+export const getAllLeaves = async (managerId: string) => {
+  const manager = await User.findById(managerId);
+
+  if (!manager) {
+    throw new Error("Manager not found");
+  }
+  console.log("Manager: ", manager);
+
   const leaves = await Leave.find()
-    .populate("employeeId", "name email createdAt updatedAt")
+    .populate("employeeId", "name email department createdAt updatedAt")
     .lean();
 
-  return leaves.map((leave) => ({
-    ...leave,
-    employee: leave.employeeId,
-    employeeId: undefined
-  }));
+  console.log("Leaves service: ", leaves);
+
+  return leaves
+    .filter((leave: any) =>
+      leave.employeeId?.department === manager.department
+    )
+    .map((leave) => ({
+      ...leave,
+      employee: leave.employeeId,
+      employeeId: undefined
+    }));
 };
 
 export const updateLeaveStatus = async (
   leaveId: string,
   status: "Approved" | "Rejected",
+  managerId: string,
   managerComment?: string
 ) => {
 
-  const leave = await Leave.findById(leaveId);
+  const manager = await User.findById(managerId);
 
-  if (!leave) throw new Error("Leave not found");
+  if (!manager) {
+    throw new Error("Manager not found");
+  }
+
+  const leave = await Leave.findById(leaveId)
+    .populate("employeeId", "department");
+
+  if (!leave) {
+    throw new Error("Leave not found");
+  }
+
+  const employee = leave.employeeId as any;
+
+  if (employee.department !== manager.department) {
+    throw new Error("You can only manage leaves for your department");
+  }
 
   // Only run balance logic if approving
   if (status === "Approved") {

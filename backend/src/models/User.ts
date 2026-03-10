@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: "employee" | "manager";
+  department:  "engineering" | "marketing" | "sales" | "hr";
 
   leaveBalance: {
     annual: number;
@@ -37,6 +38,12 @@ const userSchema = new Schema<IUser>({
     type: String,
     enum: ["employee", "manager"],
     default: "employee"
+  },
+
+  department: {
+    type: String,
+    enum: ["engineering", "marketing", "sales", "hr"],
+    required: true
   },
 
   leaveBalance: {

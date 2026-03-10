@@ -316,6 +316,8 @@ onMounted(async () => {
   try {
     const { data } = await api.get<AllLeavesResponse>("/leave/all");
     leaves.value = data.leaves;
+
+    console.log("Leaves data: ", leaves.value);
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     fetchError.value = e.response?.data?.message ?? "Failed to load leave requests.";
