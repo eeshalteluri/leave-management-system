@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 
 import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
 import leaveRoutes from "./routes/leaveRoutes";
 
 dotenv.config();
@@ -34,6 +35,7 @@ app.use(express.json());
 
 
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/leave", leaveRoutes);
 
 app.listen(PORT, () => {

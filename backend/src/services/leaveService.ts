@@ -1,5 +1,9 @@
 import Leave from "../models/Leave";
+import User from "../models/User";
 import mongoose from "mongoose";
+
+import { leaveTypeBalanceKey } from "../utils/leaveTypeMap";
+import { calculateLeaveDays } from "../utils/dateUtils";
 
 export const createLeave = async (
   employeeId: string,
@@ -70,7 +74,29 @@ export const createLeave = async (
     );
   }
 
-  // 7️⃣ Create leave request
+  // 7️⃣ Check leave balance before creating request
+  const balanceKey = leaveTypeBalanceKey[leaveType];
+
+  if (balanceKey) {
+
+    const daysRequested = duration;
+
+    const user = await User.findById(employeeObjectId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const currentBalance = user.leaveBalance[balanceKey];
+
+    if (currentBalance < daysRequested) {
+      throw new Error(
+        `You only have ${currentBalance} ${balanceKey} leave days remaining`
+      );
+    }
+  }
+
+  // Create leave request
   try {
 
     const leave = await Leave.create({
@@ -121,9 +147,42 @@ export const updateLeaveStatus = async (
 
   if (!leave) throw new Error("Leave not found");
 
+  // Only run balance logic if approving
+  if (status === "Approved") {
+
+    const balanceKey = leaveTypeBalanceKey[leave.leaveType];
+
+    // Only certain leave types affect balance
+    if (balanceKey) {
+
+      const days = calculateLeaveDays(
+        leave.startDate,
+        leave.endDate
+      );
+
+      const user = await User.findById(leave.employeeId);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const currentBalance = user.leaveBalance[balanceKey];
+
+      if (currentBalance < days) {
+        throw new Error(
+          `Insufficient ${balanceKey} leave balance`
+        );
+      }
+
+      user.leaveBalance[balanceKey] -= days;
+
+      await user.save();
+    }
+  }
+
   leave.status = status;
 
-  await leave.save(); // timestamps update automatically
+  await leave.save();
 
   await leave.populate("employeeId", "name email");
 

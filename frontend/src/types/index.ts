@@ -1,5 +1,11 @@
 // ── User & Auth ────────────────────────────────────────────────
-export type UserRole = "employee" | "manager";
+export type UserRole = "employee" | "employer";
+
+export interface LeaveBalance {
+  annual: number;
+  sick: number;
+  casual: number;
+}
 
 export interface User {
   id: string;
@@ -7,7 +13,15 @@ export interface User {
   email: string;
   role: UserRole;
   department?: string;
+  leaveBalance?: LeaveBalance;
 }
+
+// Maximum allowed days per leave type (matches User model defaults)
+export const LEAVE_BALANCE_MAX: LeaveBalance = {
+  annual: 20,
+  sick:   10,
+  casual: 7,
+};
 
 export interface AuthResponse {
   message?: string;
@@ -53,7 +67,7 @@ export interface LeaveRequest {
   updatedAt: string;
 }
 
-// POST /api/leave/apply
+// POST /api/leaves/apply
 export interface ApplyLeavePayload {
   leaveType: LeaveType;
   startDate: string;
@@ -61,7 +75,7 @@ export interface ApplyLeavePayload {
   reason: string;
 }
 
-// PUT /api/leave/:id  — your backend accepts capitalized status
+// PUT /api/leaves/:id  — your backend accepts capitalized status
 export interface UpdateLeaveStatusPayload {
   status: "Approved" | "Rejected";
 }
@@ -75,9 +89,4 @@ export interface LeaveTypeOption {
 export type FilterOption = {
   value: LeaveStatus | "all";
   label: string;
-};
-
-export type MyLeavesResponse = {
-  message: string;
-  leaves: LeaveRequest[];
 };
