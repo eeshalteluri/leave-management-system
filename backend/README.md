@@ -22,21 +22,26 @@ Node.js / Express / MongoDB REST API for the LeaveDesk leave management system.
 backend/
 ├── src/
 │   ├── config/
-│   │   └── db.js                 # MongoDB connection (Mongoose)
+│   │   └── db.js                     # MongoDB connection (Mongoose)
 │   ├── controllers/
-│   │   ├── authController.js     # signup, login
-│   │   ├── leaveController.js    # apply, getMyLeaves, getAllLeaves, updateLeaveStatus
-│   │   └── userController.js     # getLeaveBalance
-│   ├── middleware/
-│   │   └── auth.js               # protect (JWT verify) + authorize (role check)
+│   │   ├── authController.js         # signup, login
+│   │   ├── leaveController.js        # apply, getMyLeaves, getAllLeaves, updateLeaveStatus
+│   │   └── userController.js         # getLeaveBalance
+│   ├── middlewares/
+│   │   ├── authMiddleware.js         # protect — verifies JWT and attaches user to req
+│   │   └── roleMiddleware.js         # authorize — enforces role-based access control
 │   ├── models/
-│   │   ├── User.js               # User schema
-│   │   └── Leave.js              # Leave request schema
+│   │   ├── User.js                   # User schema (employee / manager)
+│   │   └── Leave.js                  # Leave request schema
 │   ├── routes/
-│   │   ├── auth.js               # /api/auth/*
-│   │   ├── leave.js              # /api/leaves/*
-│   │   └── user.js               # /api/user/*
-│   └── app.js                    # Express entry point, middleware, route mounting
+│   │   ├── authRoutes.js             # /api/auth/*
+│   │   ├── leaveRoutes.js            # /api/leave/*
+│   │   └── userRoutes.js             # /api/user/*
+│   ├── services/
+│   │   ├── authService.js            # Auth business logic
+│   │   ├── leaveService.js           # Leave business logic
+│   │   └── userService.js            # User business logic
+│   └── app.js                        # Express entry point, middleware, route mounting
 ├── .env.example
 └── package.json
 ```
@@ -81,32 +86,34 @@ npm start       # production
 
 ### User
 
-| Field         | Type     | Notes                                              |
-|---------------|----------|----------------------------------------------------|
-| `name`        | String   | Required                                           |
-| `email`       | String   | Required, unique                                   |
-| `password`    | String   | Hashed with bcrypt (12 salt rounds)                |
-| `role`        | String   | `"employee"` or `"manager"`                        |
-| `department`  | String   | Lowercase enum: `"engineering"`, `"marketing"`, `"sales"`, `"hr"` |
-| `leaveBalance`| Object   | `{ annual: 20, sick: 10, casual: 7 }` (defaults)  |
+| Field          | Type     | Notes                                                                          |
+|----------------|----------|--------------------------------------------------------------------------------|
+| `name`         | String   | Required                                                                       |
+| `email`        | String   | Required, unique                                                               |
+| `password`     | String   | Hashed with bcrypt (12 salt rounds)                                            |
+| `role`         | String   | `"employee"` or `"manager"` — **not** `"employer"`                            |
+| `department`   | String   | Lowercase enum: `"engineering"`, `"marketing"`, `"sales"`, `"hr"` — Required  |
+| `leaveBalance` | Object   | `{ annual: 20, sick: 10, casual: 7 }` set as defaults on creation             |
+
+> ⚠️ `department` must be **lowercase**. Existing users with capitalised department values (e.g. `"Engineering"`) will not match the manager's department filter and will be invisible to managers.
 
 ### Leave
 
-| Field            | Type     | Notes                                                             |
-|------------------|----------|-------------------------------------------------------------------|
-| `employee`       | ObjectId | Ref: User                                                         |
-| `leaveType`      | String   | `"Annual Leave"`, `"Sick Leave"`, `"Casual Leave"`, `"Maternity Leave"`, `"Paternity Leave"`, `"Unpaid Leave"` |
-| `startDate`      | Date     | Required                                                          |
-| `endDate`        | Date     | Required                                                          |
-| `reason`         | String   | Required                                                          |
-| `status`         | String   | `"Pending"` (default), `"Approved"`, `"Rejected"` — capitalized  |
-| `managerComment` | String   | Optional, set when manager reviews the request                    |
+| Field            | Type     | Notes                                                                                                               |
+|------------------|----------|---------------------------------------------------------------------------------------------------------------------|
+| `employee`       | ObjectId | Ref: User — populated with `name`, `email`, `department` on list queries                                           |
+| `leaveType`      | String   | `"Annual Leave"`, `"Sick Leave"`, `"Casual Leave"`, `"Maternity Leave"`, `"Paternity Leave"`, `"Unpaid Leave"`     |
+| `startDate`      | Date     | Required                                                                                                            |
+| `endDate`        | Date     | Required                                                                                                            |
+| `reason`         | String   | Required                                                                                                            |
+| `status`         | String   | `"Pending"` (default), `"Approved"`, `"Rejected"` — **capitalized**                                               |
+| `managerComment` | String   | Optional — set by manager when reviewing a request                                                                  |
 
 ---
 
 ## REST API Reference
 
-All protected routes require the header:
+All protected routes require:
 ```
 Authorization: Bearer <token>
 ```
@@ -115,7 +122,7 @@ Authorization: Bearer <token>
 
 ### Auth — `/api/auth`
 
-#### POST `/api/auth/signup`
+#### `POST /api/auth/signup`
 Register a new user.
 
 **Request body:**
@@ -129,18 +136,18 @@ Register a new user.
 }
 ```
 
-**Response:**
+**Response `201`:**
 ```json
 {
   "message": "User registered successfully",
   "token": "<jwt>",
-  "user": { "id", "name", "email", "role", "department" }
+  "user": { "id": "...", "name": "...", "email": "...", "role": "...", "department": "..." }
 }
 ```
 
 ---
 
-#### POST `/api/auth/login`
+#### `POST /api/auth/login`
 Login and receive a JWT.
 
 **Request body:**
@@ -151,21 +158,21 @@ Login and receive a JWT.
 }
 ```
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "message": "Login successful",
   "token": "<jwt>",
-  "user": { "id", "name", "email", "role", "department" }
+  "user": { "id": "...", "name": "...", "email": "...", "role": "...", "department": "..." }
 }
 ```
 
 ---
 
-### Leaves — `/api/leaves`
+### Leaves — `/api/leave`
 
-#### POST `/api/leaves/apply`
-Submit a new leave request. Role: `employee`.
+#### `POST /api/leave/apply`
+Submit a new leave request. **Role:** `employee`
 
 **Request body:**
 ```json
@@ -177,19 +184,27 @@ Submit a new leave request. Role: `employee`.
 }
 ```
 
+**Response `201`:**
+```json
+{
+  "message": "Leave request submitted",
+  "leave": { ...LeaveRequest }
+}
+```
+
 ---
 
-#### GET `/api/leaves/my`
-Get the authenticated employee's own leave requests. Role: `employee`.
+#### `GET /api/leave/my`
+Get the authenticated employee's own leave requests. **Role:** `employee`
 
 **Query params:**
 
-| Param   | Default | Description          |
-|---------|---------|----------------------|
-| `page`  | `1`     | Page number          |
-| `limit` | `10`    | Results per page     |
+| Param   | Default | Description      |
+|---------|---------|------------------|
+| `page`  | `1`     | Page number      |
+| `limit` | `10`    | Results per page |
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "message": "Leave requests fetched",
@@ -205,17 +220,19 @@ Get the authenticated employee's own leave requests. Role: `employee`.
 
 ---
 
-#### GET `/api/leaves/all`
-Get all leave requests for the manager's department. Role: `manager`.
+#### `GET /api/leave/all`
+Get all leave requests for the manager's department. **Role:** `manager`
+
+> Managers can only see leaves from employees in **their own department**.
 
 **Query params:**
 
-| Param   | Default | Description          |
-|---------|---------|----------------------|
-| `page`  | `1`     | Page number          |
-| `limit` | `10`    | Results per page     |
+| Param   | Default | Description      |
+|---------|---------|------------------|
+| `page`  | `1`     | Page number      |
+| `limit` | `10`    | Results per page |
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "message": "All leave requests fetched",
@@ -229,7 +246,7 @@ Get all leave requests for the manager's department. Role: `manager`.
 }
 ```
 
-Each leave object in `leaves` includes the populated `employee` field:
+Each leave object includes the populated `employee` field:
 ```json
 "employee": {
   "name": "Jane Smith",
@@ -240,8 +257,8 @@ Each leave object in `leaves` includes the populated `employee` field:
 
 ---
 
-#### PUT `/api/leaves/:id`
-Approve or reject a leave request. Role: `manager`.
+#### `PUT /api/leave/:id`
+Approve or reject a leave request. **Role:** `manager`
 
 **Request body:**
 ```json
@@ -251,9 +268,10 @@ Approve or reject a leave request. Role: `manager`.
 }
 ```
 
-`managerComment` is optional. `status` must be `"Approved"` or `"Rejected"` (capitalized).
+- `status` must be `"Approved"` or `"Rejected"` (capitalized)
+- `managerComment` is optional
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "message": "Leave status updated",
@@ -265,10 +283,10 @@ Approve or reject a leave request. Role: `manager`.
 
 ### User — `/api/user`
 
-#### GET `/api/user/leave-balance`
-Get the authenticated employee's remaining leave balance. Role: `employee`.
+#### `GET /api/user/leave-balance`
+Get the authenticated employee's remaining leave balance. **Role:** `employee`
 
-**Response:**
+**Response `200`:**
 ```json
 {
   "message": "Leave balance fetched",
@@ -285,22 +303,35 @@ Get the authenticated employee's remaining leave balance. Role: `employee`.
 ## Security
 
 - Passwords hashed with **bcrypt** (12 salt rounds)
-- **JWT** with configurable expiry (`JWT_EXPIRES_IN`)
-- `protect` middleware verifies the token on every protected route
-- `authorize(...roles)` middleware enforces role-based access control
-- Managers are scoped to their own department — they cannot see or action leaves from other departments
+- **JWT** authentication with configurable expiry via `JWT_EXPIRES_IN`
+- `authMiddleware.js` (`protect`) — verifies the token and attaches the decoded user to `req.user` on every protected route
+- `roleMiddleware.js` (`authorize`) — checks `req.user.role` against the allowed roles for the route; returns `403` if unauthorized
+- Managers are department-scoped — `getAllLeaves` filters by `req.user.department`, so managers cannot see or action leaves outside their department
+
+---
+
+## Leave Types
+
+| Value             | Notes                              |
+|-------------------|------------------------------------|
+| `Annual Leave`    | Deducted from `leaveBalance.annual` |
+| `Sick Leave`      | Deducted from `leaveBalance.sick`   |
+| `Casual Leave`    | Deducted from `leaveBalance.casual` |
+| `Maternity Leave` | No balance deduction               |
+| `Paternity Leave` | No balance deduction               |
+| `Unpaid Leave`    | No balance deduction               |
 
 ---
 
 ## Deployment
 
 ### Railway / Render / Fly.io
-1. Set all environment variables from `.env.example` in your hosting dashboard
+1. Set all environment variables from `.env.example` in your hosting provider's dashboard
 2. Set `NODE_ENV=production`
 3. Start command: `npm start`
 
 ### Frontend connection
-Set `VITE_API_BASE_URL` in the frontend `.env` to your deployed backend URL, e.g.:
+Set `VITE_API_BASE_URL` in the frontend `.env` to your deployed backend URL:
 ```
 VITE_API_BASE_URL=https://your-backend.railway.app
 ```
