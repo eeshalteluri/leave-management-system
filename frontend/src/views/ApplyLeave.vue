@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gray-950">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
     <Navbar />
 
     <div class="page-container max-w-2xl">
       <!-- Back -->
       <RouterLink to="/employee/dashboard"
-        class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors mb-6 group">
+        class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-6 group">
         <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -13,8 +13,8 @@
       </RouterLink>
 
       <div class="mb-8">
-        <h1 class="text-2xl font-display font-bold text-white">Apply for Leave</h1>
-        <p class="text-gray-500 text-sm mt-1">Submit a new leave request for review.</p>
+        <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-white">Apply for Leave</h1>
+        <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">Submit a new leave request for review.</p>
       </div>
 
       <div class="card animate-fade-up">
@@ -25,7 +25,7 @@
           </svg>
           <div>
             <p class="font-medium">Request submitted successfully!</p>
-            <p class="text-emerald-500/70 text-xs mt-0.5">Your leave request is pending approval.</p>
+            <p class="text-emerald-600 dark:text-emerald-500/70 text-xs mt-0.5">Your leave request is pending approval.</p>
           </div>
         </div>
 
@@ -62,7 +62,7 @@
 
           <!-- Duration pill -->
           <div v-if="totalDays > 0"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/10 border border-brand-500/20 rounded-lg text-sm text-brand-400 font-mono">
+            class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/10 border border-brand-500/20 rounded-lg text-sm text-brand-600 dark:text-brand-400 font-mono">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -73,7 +73,7 @@
           <div>
             <label class="field-label" for="reason">
               Reason
-              <span class="text-gray-600 normal-case ml-1 font-normal">
+              <span class="text-gray-400 dark:text-gray-600 normal-case ml-1 font-normal">
                 {{ form.reason.length }}/500
               </span>
             </label>
@@ -89,7 +89,7 @@
               Cancel
             </RouterLink>
             <button type="submit" class="btn-brand flex-1" :disabled="loading">
-              <Spinner v-if="loading" size="sm" color="text-gray-950" />
+              <Spinner v-if="loading" size="sm" color="text-white dark:text-gray-950" />
               {{ loading ? "Submitting…" : "Submit Request" }}
             </button>
           </div>
@@ -158,15 +158,11 @@ async function handleSubmit(): Promise<void> {
 
   try {
     loading.value = true;
-    // ✅ Matches: POST /api/leave/apply
     await api.post("/leave/apply", form);
     success.value = true;
     Object.assign(form, { startDate: "", endDate: "", reason: "" });
     window.scrollTo({ top: 0, behavior: "smooth" });
-
-    setTimeout(() => {
-    router.push("/employee/dashboard");
-  }, 1200);
+    setTimeout(() => router.push("/employee/dashboard"), 1200);
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
     error.value = e.response?.data?.message ?? "Failed to submit request. Please try again.";

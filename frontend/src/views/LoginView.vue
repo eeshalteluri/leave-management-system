@@ -1,11 +1,11 @@
 <template>
   <div
-    class="min-h-screen bg-gray-950 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden"
+    class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden transition-colors duration-300"
   >
     <!-- Background glow -->
     <div class="absolute inset-0 pointer-events-none">
       <div
-        class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] bg-brand-500/10 rounded-full blur-3xl"
+        class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] bg-brand-500/10 dark:bg-brand-500/10 rounded-full blur-3xl"
       />
     </div>
 
@@ -17,7 +17,7 @@
           class="w-14 h-14 bg-brand-500 rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-brand-500/20"
         >
           <svg
-            class="w-7 h-7 text-gray-950"
+            class="w-7 h-7 text-white dark:text-gray-950"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -31,17 +31,16 @@
           </svg>
         </div>
 
-        <h1 class="text-3xl font-bold text-white tracking-tight">
-          Leave Management System
+        <h1 class="text-3xl font-display font-bold text-gray-900 dark:text-white tracking-tight">
+          LeaveDesk
         </h1>
-
-        <p class="text-gray-500 text-sm mt-1">
+        <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">
           Sign in to continue
         </p>
       </div>
 
       <!-- Card -->
-      <div class="card border-gray-800">
+      <div class="card">
 
         <!-- Error -->
         <div
@@ -57,20 +56,14 @@
               clip-rule="evenodd"
             />
           </svg>
-
           {{ error }}
         </div>
 
         <!-- Form -->
-        <form
-          @submit.prevent="handleSubmit"
-          novalidate
-          class="space-y-5"
-        >
+        <form @submit.prevent="handleSubmit" novalidate class="space-y-5">
 
           <div>
             <label class="field-label" for="email">Email</label>
-
             <input
               id="email"
               v-model="form.email"
@@ -83,7 +76,6 @@
 
           <div>
             <label class="field-label" for="password">Password</label>
-
             <input
               id="password"
               v-model="form.password"
@@ -99,19 +91,18 @@
             class="btn-brand w-full mt-2"
             :disabled="loading"
           >
-            <Spinner v-if="loading" size="sm" color="text-gray-950" />
+            <Spinner v-if="loading" size="sm" color="text-white dark:text-gray-950" />
             {{ loading ? "Signing in…" : "Sign in" }}
           </button>
         </form>
 
         <div class="divider" />
 
-        <p class="text-center text-sm text-gray-500">
+        <p class="text-center text-sm text-gray-500 dark:text-gray-500">
           No account?
-
           <RouterLink
             to="/signup"
-            class="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+            class="text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 font-medium transition-colors"
           >
             Create one
           </RouterLink>
@@ -146,7 +137,6 @@ async function handleSubmit(): Promise<void> {
   try {
     loading.value = true;
     const res = await auth.login(form);
-    console.log("Loggedin User: ", res.user);
     router.push(res.user.role === "employee" ? "/employee/dashboard" : "/employer/dashboard");
   } catch (err) {
     const e = err as AxiosError<{ message: string }>;
