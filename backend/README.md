@@ -1,6 +1,6 @@
-# LeaveDesk — Backend
+# Learning Management System — Backend
 
-Node.js / Express / MongoDB REST API for the LeaveDesk leave management system.
+Node.js / Express / MongoDB REST API for the Learning Management System leave management system.
 
 ---
 
@@ -54,7 +54,7 @@ Copy `.env.example` to `.env` and fill in your values:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/leavedesk?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/Learning Management System?retryWrites=true&w=majority
 JWT_SECRET=choose_a_long_random_secret_string
 JWT_EXPIRES_IN=7d
 NODE_ENV=development

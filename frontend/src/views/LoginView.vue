@@ -32,7 +32,7 @@
         </div>
 
         <h1 class="text-3xl font-display font-bold text-gray-900 dark:text-white tracking-tight">
-          LeaveDesk
+          Learning Management System
         </h1>
         <p class="text-gray-500 dark:text-gray-500 text-sm mt-1">
           Sign in to continue

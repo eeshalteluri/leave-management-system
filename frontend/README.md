@@ -1,6 +1,6 @@
-# LeaveDesk — Frontend
+# Learning Management System — Frontend
 
-Vue 3 + TypeScript frontend for the LeaveDesk leave management system.  
+Vue 3 + TypeScript frontend for the Learning Management System leave management system.  
 Connects to the Node.js / Express / MongoDB backend via a proxied `/api` path.
 
 ---
