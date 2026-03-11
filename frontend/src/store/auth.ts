@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isLoggedIn  = computed<boolean>(() => !!token.value);
   const isEmployee  = computed<boolean>(() => user.value?.role === "employee");
-  const isEmployer  = computed<boolean>(() => user.value?.role === "manager");
+  const isManager  = computed<boolean>(() => user.value?.role === "manager");
 
   function persist(t: string, u: User): void {
     token.value = t;
@@ -39,5 +39,5 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.removeItem("user");
   }
 
-  return { token, user, isLoggedIn, isEmployee, isEmployer, signup, login, logout };
+  return { token, user, isLoggedIn, isEmployee, isManager, signup, login, logout };
 });

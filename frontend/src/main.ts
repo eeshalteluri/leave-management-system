@@ -1,17 +1,15 @@
-import { createApp } from "vue"
-import { createPinia } from "pinia"
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import App from "./App.vue";
+import router from "./router";
+import "./style.css";
+import { useThemeStore } from "./store/theme";
 
-import App from "./App.vue"
-import router from "./router"
+const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia).use(router);
 
-import "@fontsource/inter/400.css"
-import "@fontsource/inter/500.css"
-import "@fontsource/inter/600.css"
-import "./style.css"
+// Apply saved theme before first render to avoid flash
+useThemeStore();
 
-const app = createApp(App)
-
-app.use(createPinia())
-app.use(router)
-
-app.mount("#app")
+app.mount("#app");

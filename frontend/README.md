@@ -1,246 +1,175 @@
-# Leave Management System — Frontend
+# LeaveDesk — Frontend
 
-The frontend for the Leave Management System, built with **Vue 3**, **TypeScript**, and **Tailwind CSS**. It connects to the Node.js/Express/MongoDB backend and provides separate dashboards for employees and employers.
+Vue 3 + TypeScript frontend for the LeaveDesk leave management system.  
+Connects to the Node.js / Express / MongoDB backend via a proxied `/api` path.
 
 ---
 
 ## Tech Stack
 
-| Layer        | Technology                                  |
-|--------------|---------------------------------------------|
-| Framework    | Vue 3 (Composition API, `<script setup>`)   |
-| Language     | TypeScript (strict mode)                    |
-| Styling      | Tailwind CSS v3                             |
-| State Management | Pinia                                   |
-| Routing      | Vue Router 4                                |
-| HTTP Client  | Axios                                       |
-| Build Tool   | Vite                                        |
-
----
-
-## Features
-
-### Employee
-- Sign up and log in as an employee
-- Apply for leave by selecting leave type, dates, and a reason
-- View all personal leave requests with live status tracking (Pending, Approved, Rejected)
-- Filter requests by status
-
-### Employer
-- Sign up and log in as an employer
-- View all employee leave requests in a central dashboard
-- Approve or reject pending requests with a single click
-- Filter requests by status
-
-### General
-- JWT-based authentication persisted across sessions
-- Role-based access control — employees and employers see different pages
-- Automatic redirect to login on session expiry (401 response)
-- Fully typed with TypeScript throughout
+| Layer      | Technology                                |
+|------------|-------------------------------------------|
+| Framework  | Vue 3 (Composition API, `<script setup>`) |
+| Language   | TypeScript (strict mode)                  |
+| Styling    | Tailwind CSS v3 + custom design system    |
+| State      | Pinia (auth store + theme store)          |
+| Routing    | Vue Router 4 (with navigation guards)     |
+| HTTP       | Axios (JWT interceptor, auto 401 logout)  |
+| Build tool | Vite                                      |
+| Fonts      | Sora (display), DM Sans (body), DM Mono  |
 
 ---
 
 ## Project Structure
 
 ```
-frontend/
-│
-├── index.html
-├── vite.config.ts
-├── tsconfig.json
-├── tailwind.config.js
-├── postcss.config.js
-├── env.d.ts
-├── .env.example
-│
-└── src/
-    │
-    ├── main.ts                  # App entry point
-    ├── App.vue                  # Root component
-    ├── style.css                # Tailwind directives + global component classes
-    │
-    ├── api/
-    │   └── axios.ts             # Axios instance with JWT interceptor and 401 handler
-    │
-    ├── components/
-    │   ├── Navbar.vue           # Sticky top nav, role-aware links, logout button
-    │   ├── Spinner.vue          # Reusable animated loading spinner
-    │   └── StatusBadge.vue      # Coloured badge for Pending / Approved / Rejected
-    │
-    ├── router/
-    │   └── index.ts             # Route definitions and navigation guards
-    │
-    ├── store/
-    │   └── auth.ts              # Pinia store — login, signup, logout, user state
-    │
-    ├── types/
-    │   └── index.ts             # TypeScript interfaces matching the backend API
-    │
-    └── views/
-        ├── LoginView.vue            # POST /api/auth/login
-        ├── SignupView.vue           # POST /api/auth/signup
-        ├── ApplyLeave.vue           # POST /api/leaves/apply  (Employee only)
-        ├── EmployeeDashboard.vue    # GET  /api/leaves/my     (Employee only)
-        ├── EmployerDashboard.vue    # GET  /api/leaves/all    (Employer only)
-        │                            # PUT  /api/leaves/:id    (Employer only)
-        └── NotFound.vue             # 404 fallback page
+src/
+├── api/
+│   └── axios.ts              # Axios instance — attaches JWT, handles 401 auto-logout
+├── components/
+│   ├── Navbar.vue            # Sticky top nav with role-aware links + theme toggle
+│   ├── Spinner.vue           # Reusable loading spinner
+│   └── StatusBadge.vue       # Pending / Approved / Rejected badge
+├── router/
+│   └── index.ts              # Routes + role-based navigation guards
+├── store/
+│   ├── auth.ts               # Pinia store: login, signup, logout, user state
+│   └── theme.ts              # Pinia store: dark/light toggle, persists to localStorage
+├── types/
+│   └── index.ts              # All TypeScript interfaces and enums matching backend API
+├── views/
+│   ├── LoginView.vue
+│   ├── SignupView.vue
+│   ├── ApplyLeave.vue         # Employee: submit a new leave request
+│   ├── EmployeeDashboard.vue  # Employee: view own leave history + balance
+│   ├── EmployerDashboard.vue  # Manager: review all department leave requests
+│   └── NotFound.vue
+├── App.vue
+├── main.ts                   # Initialises theme store before mount (prevents flash)
+└── style.css                 # Tailwind directives + design system component classes
 ```
 
 ---
 
-## Backend API Endpoints Used
+## Backend API Endpoints
 
-| Method | Endpoint             | View                  | Description                        |
-|--------|----------------------|-----------------------|------------------------------------|
-| POST   | `/api/auth/signup`   | SignupView            | Register a new user                |
-| POST   | `/api/auth/login`    | LoginView             | Log in and receive a JWT           |
-| POST   | `/api/leaves/apply`  | ApplyLeave            | Submit a leave request             |
-| GET    | `/api/leaves/my`     | EmployeeDashboard     | Get the logged-in employee's leaves |
-| GET    | `/api/leaves/all`    | EmployerDashboard     | Get all employee leave requests    |
-| PUT    | `/api/leaves/:id`    | EmployerDashboard     | Approve or reject a request        |
+| Method | Endpoint                  | Used in                               |
+|--------|---------------------------|---------------------------------------|
+| POST   | `/api/auth/signup`        | SignupView                            |
+| POST   | `/api/auth/login`         | LoginView                             |
+| GET    | `/api/leaves/my`          | EmployeeDashboard (paginated)         |
+| GET    | `/api/leaves/all`         | EmployerDashboard (paginated)         |
+| PUT    | `/api/leaves/:id`         | EmployerDashboard (approve / reject)  |
+| GET    | `/api/user/leave-balance` | EmployeeDashboard (balance cards)     |
 
-> Status values sent to `PUT /api/leaves/:id` are `"Approved"` and `"Rejected"` (capitalized), matching the backend schema.
+### Important backend conventions
+
+- `User.role` is `"employee"` or `"manager"` (not `"employer"`)
+- `User.department` is a **lowercase** enum: `"engineering"`, `"marketing"`, `"sales"`, `"hr"`
+- `Leave.status` is capitalized: `"Pending"`, `"Approved"`, `"Rejected"`
+- `GET /api/leaves/my` and `GET /api/leaves/all` both accept `page` and `limit` query params
+- `GET /api/leaves/all` returns `{ message, leaves, pagination }` where `pagination` is `{ total, page, limit, totalPages }`
+- A manager can only see and action leaves from their own department
+- `PUT /api/leaves/:id` accepts `{ status, managerComment? }`
 
 ---
 
-## Prerequisites
+## Key Features
 
-- **Node.js** v18 or higher
-- **npm** v9 or higher
-- The backend server running on `http://localhost:5000`
+### Employee Dashboard
+- **Leave balance cards** — annual, sick, and casual days remaining with progress bars, fetched from `/api/user/leave-balance`
+- **Request summary stats** — total, pending, approved, and rejected counts across all requests (not just the current page)
+- **Status filter tabs** — filter by All / Pending / Approved / Rejected, each tab shows its count
+- **Paginated leave list** — 5 requests per page, client-side filtering + pagination over the full dataset
+- **Colorful leave type badges** — each leave type has a distinct color identity
+- **Manager comment display** — shown on reviewed cards with contextual green/red styling
+
+### Manager Dashboard
+- **Request summary stats** — accurate counts across all department requests
+- **Status filter tabs** — with per-tab counts
+- **Advanced filter panel** — filter by employee name, leave type, and date range, with active filter count badge and one-click clear
+- **Paginated request list** — 10 per page, client-side filtering + pagination over the full dataset so filters work across all pages
+- **Approve / Reject actions** — with optional comment (300 char limit), inline loading and error states
+- **Live stat updates** — approving or rejecting a request immediately updates counts without a re-fetch
+
+### General
+- **Dark / light mode toggle** — persists to `localStorage`, initialised before mount to prevent flash
+- **Responsive design** — mobile-first, collapses gracefully on small screens
+- **JWT auth** — stored in `localStorage`, injected via Axios interceptor, auto-clears on 401
+- **Role-based routing** — employees and managers are kept to their own views
 
 ---
 
-## Installation & Setup
+## Setup & Running
 
-### 1. Navigate to the frontend folder
+### Prerequisites
+- Node.js v18+
+- Backend running on `http://localhost:5000`
 
-```bash
-cd leave-management-system/frontend
-```
-
-### 2. Set up environment variables
+### Install & start
 
 ```bash
+cd frontend
 cp .env.example .env
-```
-
-The default `.env` requires no changes for local development. The Vite dev server automatically proxies all `/api` requests to the backend at `http://localhost:5000`.
-
-### 3. Install dependencies
-
-```bash
 npm install
-```
-
----
-
-## Running the App
-
-Make sure the backend is running first, then start the frontend:
-
-```bash
 npm run dev
 ```
 
-The app will be available at:
+App runs at `http://localhost:5173`.  
+Vite proxies all `/api/*` requests to `http://localhost:5000` automatically.
 
+### Type check
+
+```bash
+npm run type-check
 ```
-http://localhost:5173
-```
 
----
-
-## Available Scripts
-
-| Script                  | Description                                    |
-|-------------------------|------------------------------------------------|
-| `npm run dev`           | Start the Vite development server              |
-| `npm run build`         | Compile TypeScript and build for production    |
-| `npm run preview`       | Preview the production build locally           |
-| `npm run type-check`    | Run TypeScript type checking without building  |
-
----
-
-## Authentication Flow
-
-1. User signs up or logs in via the auth forms
-2. The backend returns a JWT token and user object
-3. Both are saved to `localStorage`
-4. Every subsequent API request automatically includes the token via an Axios request interceptor (`Authorization: Bearer <token>`)
-5. If the server returns a `401 Unauthorized` response, the token is cleared and the user is redirected to `/login`
-
----
-
-## Role-Based Access Control
-
-Navigation guards in `router/index.ts` enforce the following rules:
-
-| Condition                               | Redirect                   |
-|-----------------------------------------|----------------------------|
-| Not logged in, accessing a private page | `/login`                   |
-| Logged in, accessing `/login` or `/signup` | Role-appropriate dashboard |
-| Employee accessing an employer route    | `/employee/dashboard`      |
-| Employer accessing an employee route    | `/employer/dashboard`      |
-
----
-
-## Pages & Routes
-
-| Route                    | View                  | Access    |
-|--------------------------|-----------------------|-----------|
-| `/login`                 | LoginView             | Public    |
-| `/signup`                | SignupView            | Public    |
-| `/employee/dashboard`    | EmployeeDashboard     | Employee  |
-| `/employee/apply`        | ApplyLeave            | Employee  |
-| `/employer/dashboard`    | EmployerDashboard     | Employer  |
-
----
-
-## Production Build & Deployment
-
-### Build
+### Production build
 
 ```bash
 npm run build
+# output → dist/
 ```
-
-This compiles TypeScript and outputs static files to the `dist/` folder.
-
-### Deploy
-
-The `dist/` folder can be deployed to any static hosting service such as **Vercel**, **Netlify**, or **GitHub Pages**.
-
-#### Netlify
-
-Add a `_redirects` file inside the `public/` folder to handle client-side routing:
-
-```
-/* /index.html 200
-```
-
-#### Environment variables for production
-
-Before building, update your `.env` to point to your deployed backend:
-
-```env
-VITE_API_BASE_URL=https://your-backend-url.com/api
-```
-
-And update the `baseURL` in `src/api/axios.ts` accordingly if not using a proxy.
 
 ---
 
-## Environment Variables
+## Design System
 
-| Variable            | Default                        | Description                       |
-|---------------------|--------------------------------|-----------------------------------|
-| `VITE_API_BASE_URL` | `http://localhost:5000/api`    | Base URL for the backend API      |
+Global component classes are defined in `style.css` and composed with `@apply`:
 
-> In development, the Vite proxy handles API requests so this variable only applies to production builds.
+| Class          | Description                          |
+|----------------|--------------------------------------|
+| `.card`        | Standard white/dark bordered panel   |
+| `.card-sm`     | Compact card variant                 |
+| `.stat-card`   | Stat summary tile                    |
+| `.field`       | Text input / select / textarea       |
+| `.field-label` | Form label                           |
+| `.btn-brand`   | Primary teal action button           |
+| `.btn-approve` | Green approve button                 |
+| `.btn-reject`  | Red reject button                    |
+| `.badge-*`     | Status badge variants                |
+| `.alert-error` | Red error alert block                |
+
+All classes carry both light and `dark:` Tailwind variants.
 
 ---
 
-## Author
+## Leave Type Colors
 
-Developed as part of a technical assignment demonstrating full-stack development using Vue 3, TypeScript, and a Node.js REST API.
+| Leave Type      | Color  |
+|-----------------|--------|
+| Annual Leave    | Teal   |
+| Sick Leave      | Rose   |
+| Casual Leave    | Violet |
+| Maternity Leave | Pink   |
+| Paternity Leave | Sky    |
+| Unpaid Leave    | Orange |
+
+---
+
+## Notes
+
+- All `.vue` files use `<script setup lang="ts">` with explicit TypeScript types throughout.
+- The pagination strategy on both dashboards is **hybrid**: initial data is fetched server-side with `page` + `limit`, but a second `limit: 9999` fetch populates `allLeaves` for accurate stat counts and client-side filtering. Filtering and page slicing then run entirely on the client, so filters correctly span all pages without needing backend support for filter params.
+- `watch(active/filters)` resets `currentPage` to 1 whenever a filter changes so you never land on an out-of-range page.
+- After a manager approves or rejects a request, both `leaves` and `allLeaves` are updated in-memory so stats and filters reflect the change immediately without a re-fetch.

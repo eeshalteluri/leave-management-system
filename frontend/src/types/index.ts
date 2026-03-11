@@ -1,5 +1,7 @@
 // ── User & Auth ────────────────────────────────────────────────
 export type UserRole = "employee" | "manager";
+
+// Lowercase to match backend enum exactly
 export type Department = "engineering" | "marketing" | "sales" | "hr";
 
 export interface LeaveBalance {
@@ -13,7 +15,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  department: string;
+  department: Department;
   leaveBalance?: LeaveBalance;
 }
 
@@ -35,7 +37,7 @@ export interface SignupPayload {
   email: string;
   password: string;
   role: UserRole;
-  department: string;
+  department: Department; // required by backend
 }
 
 export interface LoginPayload {
@@ -96,11 +98,25 @@ export type FilterOption = {
 
 // Response types
 export interface MyLeavesResponse {
+  message:     string;
+  leaves:      LeaveRequest[];
+  pagination?: Pagination; // optional — works with both paginated and non-paginated backends
+}
+
+export interface AllLeavesResponse_OLD {
   message: string;
   leaves: LeaveRequest[];
 }
 
+export interface Pagination {
+  total:      number;
+  page:       number;
+  limit:      number;
+  totalPages: number;
+}
+
 export interface AllLeavesResponse {
-  message: string;
-  leaves: LeaveRequest[];
+  message:    string;
+  leaves:     LeaveRequest[];
+  pagination: Pagination;
 }

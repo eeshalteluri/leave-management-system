@@ -120,35 +120,88 @@ export const createLeave = async (
   }
 };
 
-export const getEmployeeLeaves = async (employeeId: string) => {
-  return await Leave.find({
+export const getEmployeeLeaves = async (
+  employeeId: string,
+  page: number = 1,
+  limit: number = 5
+) => {
+
+  const skip = (page - 1) * limit;
+
+  const leaves = await Leave.find({
+    employeeId: new mongoose.Types.ObjectId(employeeId)
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const total = await Leave.countDocuments({
     employeeId: new mongoose.Types.ObjectId(employeeId)
   });
+
+  return {
+    leaves,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
 
-export const getAllLeaves = async (managerId: string) => {
+export const getAllLeaves = async (
+  managerId: string,
+  page: number = 1,
+  limit: number = 5
+) => {
+
   const manager = await User.findById(managerId);
 
   if (!manager) {
     throw new Error("Manager not found");
   }
-  console.log("Manager: ", manager);
 
-  const leaves = await Leave.find()
-    .populate("employeeId", "name email department createdAt updatedAt")
+  // Step 1️⃣ Find employees in the manager's department
+  const employees = await User.find({
+    department: manager.department,
+    role: "employee"
+  }).select("_id");
+
+  const employeeIds = employees.map(e => e._id);
+
+  const skip = (page - 1) * limit;
+
+  // Step 2️⃣ Fetch leaves belonging only to those employees
+  const leaves = await Leave.find({
+    employeeId: { $in: employeeIds }
+  })
+    .populate("employeeId", "name email department")
+    .skip(skip)
+    .limit(limit)
     .lean();
 
-  console.log("Leaves service: ", leaves);
+  // Step 3️⃣ Count only department leaves
+  const total = await Leave.countDocuments({
+    employeeId: { $in: employeeIds }
+  });
 
-  return leaves
-    .filter((leave: any) =>
-      leave.employeeId?.department === manager.department
-    )
-    .map((leave) => ({
-      ...leave,
-      employee: leave.employeeId,
-      employeeId: undefined
-    }));
+  const formattedLeaves = leaves.map((leave: any) => ({
+    ...leave,
+    employee: leave.employeeId,
+    employeeId: undefined
+  }));
+
+  return {
+    leaves: formattedLeaves,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
 
 export const updateLeaveStatus = async (

@@ -43,46 +43,63 @@ export const applyLeave = async (req: AuthRequest, res: Response) => {
 
 export const myLeaves = async (req: AuthRequest, res: Response) => {
   try {
+
     if (!req.user) {
       return res.status(401).json({
         message: "Unauthorized"
       });
     }
 
-    const leaves = await leaveService.getEmployeeLeaves(req.user.id);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const result = await leaveService.getEmployeeLeaves(
+      req.user.id,
+      page,
+      limit
+    );
 
     res.status(200).json({
       message: "Employee leave requests fetched",
-      leaves
+      ...result
     });
 
   } catch (error) {
+
     console.error("Fetch employee leaves error:", error);
 
     res.status(500).json({
       message: "Internal server error"
     });
+
   }
 };
 
 export const allLeaves = async (req: AuthRequest, res: Response) => {
   try {
-
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const leaves = await leaveService.getAllLeaves(req.user.id);
-    console.log("All leaves Controller: ", leaves);
+    const managerId = req.user.id;
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+
+    const result = await leaveService.getAllLeaves(
+      managerId,
+      page,
+      limit
+    );
 
     res.status(200).json({
       message: "Department leave requests fetched",
-      leaves
+      ...result
     });
 
   } catch (error) {
 
-    console.error("Fetch department leaves error:", error);
+    console.error("Fetch leaves error:", error);
 
     res.status(500).json({
       message: "Internal server error"
@@ -96,6 +113,14 @@ export const updateLeave = async (
   res: Response
 ) => {
   try {
+    if(!req.user){
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
+
+    const managerId = req.user.id;
+
     const leaveId = req.params.id;
     const { status, managerComment } = req.body;
 
@@ -120,6 +145,7 @@ export const updateLeave = async (
     const leave = await leaveService.updateLeaveStatus(
       leaveId as string,
       status,
+      managerId,
       managerComment
     );
 
